@@ -141,9 +141,9 @@
 
     <canvas id="starfield"></canvas>
 
-    <!-- Audio Element -->
-    <audio id="bgm" loop>
-        <source src="bgm.mp3" type="audio/mpeg">
+    <!-- Audio Element (Corrected to celebration.mp3) -->
+    <audio id="bgm" loop preload="auto">
+        <source src="celebration.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Music Toggle Button -->
@@ -210,7 +210,11 @@
             bgm.play().then(() => {
                 isPlaying = true;
                 document.getElementById('musicToggle').innerText = '🎵';
-            }).catch(e => console.log("Audio play blocked by browser:", e));
+            }).catch(e => {
+                console.log("Audio play blocked:", e);
+                isPlaying = false;
+                document.getElementById('musicToggle').innerText = '🔇';
+            });
         }
 
         function toggleMusic() {
@@ -225,7 +229,25 @@
             }
         }
 
-        // --- 3. Interactive Touch/Mouse Trail ---
+        // --- 3. Cannon Confetti Effect ---
+        function fireConfettiCannon() {
+            var count = 200;
+            var defaults = { origin: { y: 0.7 } };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+
+        // --- 4. Interactive Touch/Mouse Trail ---
         const trailIcons = ['❤️', '✨', '💖', '🌟'];
         function createParticle(x, y) {
             const particle = document.createElement('span');
@@ -239,7 +261,7 @@
         window.addEventListener('mousemove', (e) => createParticle(e.clientX, e.clientY));
         window.addEventListener('touchmove', (e) => createParticle(e.touches[0].clientX, e.touches[0].clientY));
 
-        // --- 4. Double Tap Heart Explosion Effect ---
+        // --- 5. Double Tap Heart Explosion Effect ---
         let lastTap = 0;
         document.getElementById('captureCard').addEventListener('click', (e) => {
             const currentTime = new Date().getTime();
@@ -257,7 +279,7 @@
             lastTap = currentTime;
         });
 
-        // --- 5. 3D Card Tilt Effect ---
+        // --- 6. 3D Card Tilt Effect ---
         const cardInner = document.getElementById('captureCard');
         document.addEventListener('mousemove', (e) => {
             const xAxis = (window.innerWidth / 2 - e.clientX) / 25;
@@ -265,7 +287,7 @@
             cardInner.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
         });
 
-        // --- 6. Starfield Background Animation ---
+        // --- 7. Starfield Background Animation ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -295,7 +317,7 @@
         }
         animateStars();
 
-        // --- 7. Scratch Card Auto-Reveal ---
+        // --- 8. Scratch Card Auto-Reveal ---
         const scratchCanvas = document.getElementById('scratchCanvas');
         const sCtx = scratchCanvas.getContext('2d');
         let isScratching = false; let isRevealed = false;
@@ -324,7 +346,7 @@
                 scratchCanvas.style.opacity = '0';
                 setTimeout(() => {
                     scratchCanvas.style.display = 'none';
-                    confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+                    fireConfettiCannon(); // Trigger Cannon Burst
                     document.getElementById('noteBtn').style.display = 'block';
                     document.getElementById('dlBtn').style.display = 'block';
                 }, 600);
@@ -349,7 +371,7 @@
         scratchCanvas.addEventListener('touchend', () => isScratching = false);
         scratchCanvas.addEventListener('touchmove', scratch);
 
-        // --- 8. Custom Wish Letter & URL Query Support ---
+        // --- 9. Custom Wish Letter & URL Query Support ---
         let currentUserName = "Champion";
         let letterText = "";
         let letterIndex = 0;
@@ -390,14 +412,14 @@
             document.getElementById("typed-letter").innerHTML = "";
             letterIndex = 0;
             typeLetter();
-            confetti({ particleCount: 120, spread: 70, origin: { y: 0.5 } });
+            fireConfettiCannon();
         }
 
         function closeLetter() {
             document.getElementById('envelopeModal').style.display = 'none';
         }
 
-        // --- 9. Save Card Image ---
+        // --- 10. Save Card Image ---
         function downloadCard() {
             scratchCanvas.style.display = 'none';
             html2canvas(document.getElementById('captureCard')).then(cardCanvas => {
