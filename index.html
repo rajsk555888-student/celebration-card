@@ -3,151 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Congratulations Winner!</title>
-    <!-- Confetti Library -->
+    <title>Personalized Celebration Card</title>
+    <!-- Confetti & html2canvas Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
+        :root {
+            --bg-color: #08090d;
+            --card-bg: linear-gradient(135deg, #1f1c2c, #928dab);
+            --accent-color: #ffd700;
+        }
+
+        /* Themes */
+        body.theme-cosmic { --bg-color: #08090d; --card-bg: linear-gradient(135deg, #0f2027, #203a43, #2c5364); --accent-color: #00ffff; }
+        body.theme-luxury { --bg-color: #1a1500; --card-bg: linear-gradient(135deg, #232526, #414345); --accent-color: #ffd700; }
+        body.theme-cyberpunk { --bg-color: #0d001a; --card-bg: linear-gradient(135deg, #ff007f, #7f00ff); --accent-color: #00ffcc; }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
             width: 100%; height: 100%; overflow: hidden;
-            background-color: #08090d; display: flex; flex-direction: column;
+            background-color: var(--bg-color); display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            position: relative;
+            transition: background 0.5s ease; position: relative;
         }
 
-        /* Moving Stars Background */
-        #starfield {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 1; pointer-events: none;
+        #starfield { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; }
+
+        /* Theme Switcher Controls */
+        .theme-switcher {
+            position: absolute; top: 15px; right: 15px; z-index: 20; display: flex; gap: 8px;
+        }
+        .theme-btn {
+            padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.5); color: #fff; font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(5px);
         }
 
-        /* 3D Card Container */
-        .card-perspective {
-            perspective: 1000px; width: 100vw; height: 80vh;
-            display: flex; justify-content: center; align-items: center; z-index: 2;
-        }
-
-        .card-inner {
-            position: relative; width: 90%; height: 90%; text-align: center;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d; cursor: pointer;
-        }
-
-        .card-inner.flipped { transform: rotateY(180deg); }
-
-        .card-front, .card-back {
-            position: absolute; width: 100%; height: 100%;
-            -webkit-backface-visibility: hidden; backface-visibility: hidden;
-            border-radius: 16px; overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        .card-front {
-            background: linear-gradient(135deg, #1f1c2c, #928dab);
-            color: white; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            border: 2px solid rgba(255, 215, 0, 0.4); flex-direction: column;
-        }
-
-        .card-front h2 { font-size: 2rem; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        .card-back { background-color: transparent; transform: rotateY(180deg); }
-        .card-img { width: 100%; height: 100%; object-fit: contain; display: block; }
-
-        /* Typing Effect Container */
-        #typed-text {
-            color: #ffd700; font-size: 1.25rem; font-weight: 600; text-align: center;
-            height: 15vh; line-height: 1.5; padding: 0 15px;
-            text-shadow: 0 0 12px rgba(255, 215, 0, 0.5); z-index: 2;
-        }
-
-        /* Overlay with Name Input Form */
+        /* Overlay Form */
         #overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #08090d; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10;
-            transition: opacity 0.5s ease; padding: 20px;
+            background: var(--bg-color); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 30; padding: 20px;
         }
-
         .input-box {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3);
-            padding: 30px; border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            max-width: 400px; width: 100%;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent-color);
+            padding: 30px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; width: 100%;
         }
-
-        .input-box h3 { color: #ffd700; margin-bottom: 15px; font-size: 1.4rem; }
-
+        .input-box h3 { color: var(--accent-color); margin-bottom: 15px; }
         .name-input {
             width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #ff416c;
-            background: #151722; color: #fff; font-size: 1rem; outline: none;
-            text-align: center; margin-bottom: 20px; transition: 0.3s;
+            background: #151722; color: #fff; font-size: 1rem; outline: none; text-align: center; margin-bottom: 20px;
         }
-
-        .name-input:focus { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-
         .open-btn {
             background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white;
-            padding: 14px 32px; font-size: 1.1rem; font-weight: bold; border: none;
-            border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 65, 108, 0.5);
-            transition: transform 0.2s;
+            padding: 12px 30px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer;
         }
 
-        .open-btn:active { transform: scale(0.95); }
+        /* Card Container */
+        .card-perspective { perspective: 1000px; width: 90vw; max-width: 420px; height: 65vh; z-index: 2; }
+        .card-inner {
+            position: relative; width: 100%; height: 100%; text-align: center;
+            border-radius: 16px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+            background: var(--card-bg); border: 2px solid var(--accent-color);
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 15px;
+        }
+
+        .card-img-container { position: relative; width: 100%; height: 75%; border-radius: 12px; overflow: hidden; }
+        .card-img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Scratch Canvas Layer */
+        #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; cursor: pointer; }
+
+        /* User Name Footer inside Card */
+        .card-user-footer {
+            height: 20%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .card-user-footer h3 {
+            color: var(--accent-color); font-size: 1.3rem; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Action Buttons & Typing Container */
+        #typed-text { color: var(--accent-color); font-size: 1rem; font-weight: 600; text-align: center; margin-top: 10px; z-index: 2; height: 35px; }
+        .download-btn {
+            margin-top: 10px; z-index: 2; background: #25D366; color: white; padding: 10px 20px;
+            border: none; border-radius: 20px; font-weight: bold; cursor: pointer; display: none;
+        }
     </style>
 </head>
-<body>
+<body class="theme-cosmic">
 
     <canvas id="starfield"></canvas>
     <audio id="celebrationAudio" src="celebration.mp3" preload="auto"></audio>
 
-    <!-- Interactive Name Input Overlay -->
+    <!-- Theme Switcher Buttons -->
+    <div class="theme-switcher">
+        <button class="theme-btn" onclick="setTheme('theme-cosmic')">🚀 Cosmic</button>
+        <button class="theme-btn" onclick="setTheme('theme-luxury')">👑 Luxury</button>
+        <button class="theme-btn" onclick="setTheme('theme-cyberpunk')">🤖 Cyberpunk</button>
+    </div>
+
+    <!-- Name Overlay -->
     <div id="overlay">
         <div class="input-box">
             <h3>✨ Welcome Winner! ✨</h3>
-            <p style="color: #aaa; margin-bottom: 15px; font-size: 0.9rem;">Enter your name to open your surprise card:</p>
+            <p style="color: #aaa; margin-bottom: 15px; font-size: 0.85rem;">Enter your name to customize your card:</p>
             <input type="text" id="userName" class="name-input" placeholder="Type Your Name..." autocomplete="off">
-            <button class="open-btn" onclick="openSurprise()">Reveal Surprise 🎁</button>
+            <button class="open-btn" onclick="openSurprise()">Unlock Card 🎁</button>
         </div>
     </div>
 
-    <!-- 3D Card -->
+    <!-- Main Card -->
     <div class="card-perspective">
-        <div class="card-inner" id="flipCard" onclick="manualFlip()">
-            <div class="card-front">
-                <h2 id="welcomeName">🎁 Special Surprise 🎁</h2>
-                <p>Tap to Flip</p>
+        <div class="card-inner" id="captureCard">
+            <div class="card-img-container">
+                <canvas id="scratchCanvas"></canvas>
+                <img src="congratulation.png" alt="Congratulations" class="card-img">
             </div>
-            <div class="card-back">
-                <img src="congratulation.png" alt="Congratulations Card" class="card-img">
+            <div class="card-user-footer">
+                <p style="color: #bbb; font-size: 0.8rem;">Specially Created For</p>
+                <h3 id="displayCardName">🌟 Winner 🌟</h3>
             </div>
         </div>
     </div>
-    
+
     <div id="typed-text"></div>
+    <button class="download-btn" id="dlBtn" onclick="downloadCard()">📸 Save Card Image</button>
 
     <script>
-        // --- 1. Moving Stars Effect ---
+        // --- 1. Theme Switcher ---
+        function setTheme(themeName) { document.body.className = themeName; }
+
+        // --- 2. Moving Stars Background ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
         let stars = [];
-
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
         function createStars() {
             stars = [];
-            const colors = ['#ffffff', '#ffd700', '#ff69b4', '#00ffff', '#ff4500'];
-            for (let i = 0; i < 100; i++) {
-                stars.push({
-                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                    radius: Math.random() * 2 + 1, color: colors[Math.floor(Math.random() * colors.length)],
-                    speedX: (Math.random() - 0.5) * 0.8, speedY: (Math.random() - 0.5) * 0.8, alpha: Math.random()
-                });
+            for (let i = 0; i < 90; i++) {
+                stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 2 + 1, speedX: (Math.random() - 0.5) * 0.7, speedY: (Math.random() - 0.5) * 0.7 });
             }
         }
         createStars();
-
         function animateStars() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             stars.forEach(star => {
@@ -155,70 +155,87 @@
                 if (star.x < 0) star.x = canvas.width; if (star.x > canvas.width) star.x = 0;
                 if (star.y < 0) star.y = canvas.height; if (star.y > canvas.height) star.y = 0;
                 ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = star.color; ctx.globalAlpha = star.alpha; ctx.fill();
+                ctx.fillStyle = "#ffffff"; ctx.fill();
             });
             requestAnimationFrame(animateStars);
         }
         animateStars();
 
-        // --- 2. Confetti Effect ---
+        // --- 3. Confetti Effect ---
         function fireConfetti() {
-            var count = 250; var defaults = { origin: { y: 0.7 } };
-            function fire(particleRatio, opts) {
-                confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
-            }
-            fire(0.25, { spread: 26, startVelocity: 55 });
-            fire(0.2, { spread: 60 });
-            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-            fire(0.1, { spread: 120, startVelocity: 45 });
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         }
 
-        // --- 3. Audio Loop ---
-        const audio = document.getElementById('celebrationAudio');
-        function startAudioLoop() {
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(e => console.log(e));
-                fireConfetti();
-                setInterval(() => {
-                    audio.currentTime = 0; audio.play().catch(e => console.log(e)); fireConfetti();
-                }, 15000);
-            }
+        // --- 4. Scratch Card Setup ---
+        const scratchCanvas = document.getElementById('scratchCanvas');
+        const sCtx = scratchCanvas.getContext('2d');
+        let isScratching = false;
+
+        function initScratch() {
+            scratchCanvas.width = scratchCanvas.offsetWidth;
+            scratchCanvas.height = scratchCanvas.offsetHeight;
+            sCtx.fillStyle = '#888';
+            sCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+            sCtx.fillStyle = '#fff';
+            sCtx.font = '16px Segoe UI';
+            sCtx.textAlign = 'center';
+            sCtx.fillText('👆 Scratch here to reveal!', scratchCanvas.width / 2, scratchCanvas.height / 2);
         }
 
-        // --- 4. Dynamic Typing Effect with User's Name ---
-        let wishText = "";
-        let index = 0;
+        function scratch(e) {
+            if (!isScratching) return;
+            const rect = scratchCanvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            
+            sCtx.globalCompositeOperation = 'destination-out';
+            sCtx.beginPath();
+            sCtx.arc(x, y, 25, 0, Math.PI * 2);
+            sCtx.fill();
+        }
 
+        scratchCanvas.addEventListener('mousedown', () => isScratching = true);
+        scratchCanvas.addEventListener('mouseup', () => isScratching = false);
+        scratchCanvas.addEventListener('mousemove', scratch);
+        scratchCanvas.addEventListener('touchstart', () => isScratching = true);
+        scratchCanvas.addEventListener('touchend', () => isScratching = false);
+        scratchCanvas.addEventListener('touchmove', scratch);
+
+        // --- 5. Typing Effect & Unlock ---
+        let wishText = ""; let index = 0;
         function typeWriter() {
             if (index < wishText.length) {
                 document.getElementById("typed-text").innerHTML += wishText.charAt(index);
-                index++;
-                setTimeout(typeWriter, 50);
+                index++; setTimeout(typeWriter, 45);
             }
         }
 
-        // --- 5. Submit Name & Open Surprise ---
         function openSurprise() {
             const nameInput = document.getElementById('userName').value.trim();
             const displayName = nameInput ? nameInput : "Champion";
 
-            wishText = `✨ Heartiest Congratulations ${displayName}! Wish you brilliant success ahead! 🏆`;
-            document.getElementById('welcomeName').innerHTML = `🎁 For ${displayName} 🎁`;
+            document.getElementById('displayCardName').innerText = `✨ ${displayName} ✨`;
+            wishText = `Heartiest Congratulations ${displayName}! Keep shining always! 🏆`;
 
-            const overlay = document.getElementById('overlay');
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                document.getElementById('flipCard').classList.add('flipped');
-                typeWriter();
-                startAudioLoop();
-            }, 500);
+            document.getElementById('overlay').style.display = 'none';
+            initScratch();
+            typeWriter();
+            fireConfetti();
+            document.getElementById('dlBtn').style.display = 'block';
+
+            const audio = document.getElementById('celebrationAudio');
+            if(audio) { audio.play().catch(e=>console.log(e)); }
         }
 
-        function manualFlip() {
-            document.getElementById('flipCard').classList.toggle('flipped');
+        // --- 6. Save Card as Image (Download) ---
+        function downloadCard() {
+            scratchCanvas.style.display = 'none'; // Clear scratch layer for clear image
+            html2canvas(document.getElementById('captureCard')).then(canvas => {
+                let link = document.createElement('a');
+                link.download = 'Congratulations_Card.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
         }
     </script>
 </body>
