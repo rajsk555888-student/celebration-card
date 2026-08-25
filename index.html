@@ -27,6 +27,17 @@
         /* Canvas for Particle Effects & Stars */
         #starfield { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; }
 
+        /* Audio Toggle Button */
+        .music-btn {
+            position: absolute; top: 20px; right: 20px; z-index: 30;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 215, 0, 0.4);
+            color: #ffd700; width: 45px; height: 45px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(5px);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); transition: transform 0.2s ease;
+        }
+        .music-btn:active { transform: scale(0.9); }
+
         /* Interactive Floating Touch Particles */
         .particle {
             position: absolute; pointer-events: none; animation: floatUp 1.2s ease-out forwards;
@@ -71,13 +82,14 @@
             border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 65, 108, 0.5);
         }
 
-        /* Card Container */
+        /* Card Container & 3D Tilt */
         .card-perspective { perspective: 1000px; width: 90vw; max-width: 380px; height: 60vh; z-index: 2; }
         .card-inner {
             position: relative; width: 100%; height: 100%; text-align: center;
             border-radius: 16px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7);
             background: linear-gradient(135deg, #1f1c2c, #928dab); border: 2px solid rgba(255, 215, 0, 0.4);
             display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 15px;
+            transition: transform 0.1s ease-out;
         }
         .card-img-container { position: relative; width: 100%; height: 78%; border-radius: 12px; overflow: hidden; }
         .card-img { width: 100%; height: 100%; object-fit: contain; }
@@ -128,6 +140,14 @@
 <body>
 
     <canvas id="starfield"></canvas>
+
+    <!-- Audio Element -->
+    <audio id="bgm" loop>
+        <source src="bgm.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Music Toggle Button -->
+    <div class="music-btn" id="musicToggle" onclick="toggleMusic()">🎵</div>
 
     <!-- Name Overlay -->
     <div id="overlay">
@@ -182,7 +202,30 @@
         }
         setTimeTheme();
 
-        // --- 2. Interactive Touch/Mouse Trail ---
+        // --- 2. BGM Audio Controller ---
+        const bgm = document.getElementById('bgm');
+        let isPlaying = false;
+
+        function playMusic() {
+            bgm.play().then(() => {
+                isPlaying = true;
+                document.getElementById('musicToggle').innerText = '🎵';
+            }).catch(e => console.log("Audio play blocked by browser:", e));
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                bgm.pause();
+                isPlaying = false;
+                document.getElementById('musicToggle').innerText = '🔇';
+            } else {
+                bgm.play();
+                isPlaying = true;
+                document.getElementById('musicToggle').innerText = '🎵';
+            }
+        }
+
+        // --- 3. Interactive Touch/Mouse Trail ---
         const trailIcons = ['❤️', '✨', '💖', '🌟'];
         function createParticle(x, y) {
             const particle = document.createElement('span');
@@ -196,7 +239,7 @@
         window.addEventListener('mousemove', (e) => createParticle(e.clientX, e.clientY));
         window.addEventListener('touchmove', (e) => createParticle(e.touches[0].clientX, e.touches[0].clientY));
 
-        // --- 3. Double Tap Heart Explosion Effect ---
+        // --- 4. Double Tap Heart Explosion Effect ---
         let lastTap = 0;
         document.getElementById('captureCard').addEventListener('click', (e) => {
             const currentTime = new Date().getTime();
@@ -208,13 +251,21 @@
                 heart.style.left = `${e.clientX}px`;
                 heart.style.top = `${e.clientY}px`;
                 document.body.appendChild(heart);
-                confetti({ particleCount: 30, spread: 50, origin: { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight } });
+                confetti({ particleCount: 40, spread: 60, origin: { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight } });
                 setTimeout(() => heart.remove(), 800);
             }
             lastTap = currentTime;
         });
 
-        // --- 4. Starfield Background Animation ---
+        // --- 5. 3D Card Tilt Effect ---
+        const cardInner = document.getElementById('captureCard');
+        document.addEventListener('mousemove', (e) => {
+            const xAxis = (window.innerWidth / 2 - e.clientX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.clientY) / 25;
+            cardInner.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        // --- 6. Starfield Background Animation ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -244,7 +295,7 @@
         }
         animateStars();
 
-        // --- 5. Scratch Card Auto-Reveal ---
+        // --- 7. Scratch Card Auto-Reveal ---
         const scratchCanvas = document.getElementById('scratchCanvas');
         const sCtx = scratchCanvas.getContext('2d');
         let isScratching = false; let isRevealed = false;
@@ -273,7 +324,7 @@
                 scratchCanvas.style.opacity = '0';
                 setTimeout(() => {
                     scratchCanvas.style.display = 'none';
-                    confetti({ particleCount: 180, spread: 80, origin: { y: 0.6 } });
+                    confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
                     document.getElementById('noteBtn').style.display = 'block';
                     document.getElementById('dlBtn').style.display = 'block';
                 }, 600);
@@ -298,7 +349,7 @@
         scratchCanvas.addEventListener('touchend', () => isScratching = false);
         scratchCanvas.addEventListener('touchmove', scratch);
 
-        // --- 6. Custom Wish Letter & URL Query Support ---
+        // --- 8. Custom Wish Letter & URL Query Support ---
         let currentUserName = "Champion";
         let letterText = "";
         let letterIndex = 0;
@@ -317,6 +368,7 @@
             letterText = `Celebrating you today and always! May every moment ahead be filled with warmth, success, and endless joy. 🏆`;
             document.getElementById('overlay').style.display = 'none';
             initScratch();
+            playMusic();
         }
 
         function openSurprise() {
@@ -338,14 +390,14 @@
             document.getElementById("typed-letter").innerHTML = "";
             letterIndex = 0;
             typeLetter();
-            confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
+            confetti({ particleCount: 120, spread: 70, origin: { y: 0.5 } });
         }
 
         function closeLetter() {
             document.getElementById('envelopeModal').style.display = 'none';
         }
 
-        // --- 7. Save Card Image ---
+        // --- 9. Save Card Image ---
         function downloadCard() {
             scratchCanvas.style.display = 'none';
             html2canvas(document.getElementById('captureCard')).then(cardCanvas => {
