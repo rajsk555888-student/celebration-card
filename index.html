@@ -7,65 +7,270 @@
     <!-- Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            width: 100%; height: 100%; overflow: hidden;
-            background-color: #0d0e15;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        .fullscreen-container {
-            width: 100vw; height: 85vh;
-            display: flex; justify-content: center; align-items: center;
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #08090d;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             position: relative;
         }
+
+        /* Moving Colorful Stars Background */
+        #starfield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* 3D Flip Card Container */
+        .card-perspective {
+            perspective: 1000px;
+            width: 100vw;
+            height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Front Side Cover */
+        .card-front {
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            color: white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            flex-direction: column;
+        }
+
+        .card-front h2 {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .card-front p {
+            font-size: 1rem;
+            color: #ddd;
+        }
+
+        /* Back Side (Main Image) */
+        .card-back {
+            background-color: transparent;
+            transform: rotateY(180deg);
+        }
+
         .card-img {
-            width: 100%; height: 100%; object-fit: contain; display: block;
-            animation: zoomIn 1s ease-out;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
+
+        /* Typing Effect Container */
         #typed-text {
-            color: #ffd700; font-size: 1.2rem; font-weight: 500;
-            text-align: center; height: 15vh; line-height: 1.5;
-            padding: 0 10px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+            color: #ffd700;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+            height: 15vh;
+            line-height: 1.5;
+            padding: 0 10px;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+            z-index: 2;
         }
+
+        /* Tap to Open Overlay Layer */
         #overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0d0e15; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 10;
-            cursor: pointer; transition: opacity 0.5s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #08090d;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
         }
+
         .open-btn {
             background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            color: white; padding: 16px 36px; font-size: 1.25rem; font-weight: bold;
-            border: none; border-radius: 50px;
+            color: white;
+            padding: 16px 36px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
             box-shadow: 0 10px 25px rgba(255, 65, 108, 0.5);
             animation: pulse 1.5s infinite;
         }
-        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Audio Player (Background-এ গান বাজাবে) -->
+    <!-- Canvas for Moving Colorful Stars -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Background Audio -->
     <audio id="celebrationAudio" src="celebration.mp3" preload="auto"></audio>
 
-    <!-- Overlay Layer -->
+    <!-- Initial Touch Overlay -->
     <div id="overlay" onclick="openSurprise()">
         <button class="open-btn">Tap to Open Surprise 🎁</button>
     </div>
 
-    <!-- Main Card Image -->
-    <div class="fullscreen-container">
-        <img src="congratulation.png" alt="Congratulations Card" class="card-img">
+    <!-- 3D Flip Card -->
+    <div class="card-perspective">
+        <div class="card-inner" id="flipCard" onclick="manualFlip()">
+            <div class="card-front">
+                <h2>🎁 Tap to Flip 3D Card 🎁</h2>
+                <p>Click anywhere on the card to reveal!</p>
+            </div>
+            <div class="card-back">
+                <img src="congratulation.png" alt="Congratulations Card" class="card-img">
+            </div>
+        </div>
     </div>
     
-    <!-- Typing Effect Message -->
+    <!-- Typing Effect Text -->
     <div id="typed-text"></div>
 
     <script>
-        const wishText = "✨ Heartiest Congratulations on this brilliant success! Keep shining! 🏆";
+        // --- 1. Moving Colorful Stars Background Effect ---
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createStars() {
+            stars = [];
+            const colors = ['#ffffff', '#ffd700', '#ff69b4', '#00ffff', '#ff4500'];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speedX: (Math.random() - 0.5) * 0.8,
+                    speedY: (Math.random() - 0.5) * 0.8,
+                    alpha: Math.random()
+                });
+            }
+        }
+        createStars();
+
+        function animateStars() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(star => {
+                star.x += star.speedX;
+                star.y += star.speedY;
+
+                if (star.x < 0) star.x = canvas.width;
+                if (star.x > canvas.width) star.x = 0;
+                if (star.y < 0) star.y = canvas.height;
+                if (star.y > canvas.height) star.y = 0;
+
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = star.color;
+                ctx.globalAlpha = star.alpha;
+                ctx.fill();
+            });
+            requestAnimationFrame(animateStars);
+        }
+        animateStars();
+
+        // --- 2. Confetti Cannon Effect ---
+        function fireConfetti() {
+            var count = 250;
+            var defaults = { origin: { y: 0.7 } };
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
+            }
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+
+        // --- 3. 15-second Audio Loop & Confetti Sync ---
+        const audio = document.getElementById('celebrationAudio');
+        let audioTimer = null;
+
+        function startAudioLoop() {
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log("Audio play error:", e));
+                fireConfetti(); // Fire confetti at start
+
+                // Loop audio & confetti every 15 seconds
+                audioTimer = setInterval(() => {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log("Audio loop error:", e));
+                    fireConfetti();
+                }, 15000);
+            }
+        }
+
+        // --- 4. Typing Effect Message ---
+        const wishText = "✨ Heartiest Congratulations on this brilliant success! Keep shining always! 🏆";
         let index = 0;
 
         function typeWriter() {
@@ -76,32 +281,20 @@
             }
         }
 
+        // --- 5. Open Surprise & 3D Flip Execution ---
         function openSurprise() {
-            // ১. গান চালুর জন্য জাভাস্ক্রিপ্ট কমান্ড
-            const audio = document.getElementById('celebrationAudio');
-            if (audio) {
-                audio.play().catch(e => console.log("Audio play failed:", e));
-            }
-
-            // ২. স্ক্রিন ওপেন করা ও মেসেজ টাইপ করা
             const overlay = document.getElementById('overlay');
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.display = 'none';
+                document.getElementById('flipCard').classList.add('flipped'); // 3D Flip
                 typeWriter();
+                startAudioLoop(); // Start 15s audio & confetti cycle
             }, 500);
+        }
 
-            // ৩. কনফেটি ওড়ানো
-            var count = 200;
-            var defaults = { origin: { y: 0.7 } };
-            function fire(particleRatio, opts) {
-                confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
-            }
-            fire(0.25, { spread: 26, startVelocity: 55 });
-            fire(0.2, { spread: 60 });
-            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
-            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
-            fire(0.1, { spread: 120, startVelocity: 45 });
+        function manualFlip() {
+            document.getElementById('flipCard').classList.toggle('flipped');
         }
     </script>
 </body>
