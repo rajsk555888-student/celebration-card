@@ -3,113 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Personalized Celebration Card</title>
+    <title>Special Celebration Card</title>
     <!-- Confetti & html2canvas Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        :root {
-            --bg-color: #08090d;
-            --card-bg: linear-gradient(135deg, #1f1c2c, #928dab);
-            --accent-color: #ffd700;
-        }
-
-        /* Themes */
-        body.theme-cosmic { --bg-color: #08090d; --card-bg: linear-gradient(135deg, #0f2027, #203a43, #2c5364); --accent-color: #00ffff; }
-        body.theme-luxury { --bg-color: #1a1500; --card-bg: linear-gradient(135deg, #232526, #414345); --accent-color: #ffd700; }
-        body.theme-cyberpunk { --bg-color: #0d001a; --card-bg: linear-gradient(135deg, #ff007f, #7f00ff); --accent-color: #00ffcc; }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
             width: 100%; height: 100%; overflow: hidden;
-            background-color: var(--bg-color); display: flex; flex-direction: column;
+            display: flex; flex-direction: column;
             justify-content: center; align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: background 0.5s ease; position: relative;
+            position: relative; transition: background 1s ease;
+            user-select: none;
         }
 
+        /* Time-based Theme Backgrounds */
+        body.theme-morning { background: linear-gradient(135deg, #0d1b2a, #1b263b); }
+        body.theme-afternoon { background: linear-gradient(135deg, #10002b, #240046); }
+        body.theme-night { background: linear-gradient(135deg, #05050a, #0b0c10); }
+
+        /* Canvas for Particle Effects & Stars */
         #starfield { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; }
 
-        /* Theme Switcher Controls */
-        .theme-switcher {
-            position: absolute; top: 15px; right: 15px; z-index: 20; display: flex; gap: 8px;
+        /* Interactive Floating Touch Particles */
+        .particle {
+            position: absolute; pointer-events: none; animation: floatUp 1.2s ease-out forwards;
+            font-size: 1.2rem; z-index: 99; opacity: 1;
         }
-        .theme-btn {
-            padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(0,0,0,0.5); color: #fff; font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(5px);
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
         }
 
-        /* Overlay Form */
+        /* Double-Tap Big Heart Animation */
+        .big-heart {
+            position: absolute; font-size: 5rem; z-index: 60; pointer-events: none;
+            animation: heartPop 0.8s ease-out forwards; transform: translate(-50%, -50%);
+        }
+        @keyframes heartPop {
+            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.9; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        /* Overlay Input Form */
         #overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: var(--bg-color); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 30; padding: 20px;
+            background: rgba(8, 9, 13, 0.95); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 50; padding: 20px;
         }
         .input-box {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--accent-color);
-            padding: 30px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px); max-width: 400px; width: 100%;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 30px; border-radius: 20px; text-align: center; backdrop-filter: blur(10px);
+            max-width: 400px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
         }
-        .input-box h3 { color: var(--accent-color); margin-bottom: 15px; }
+        .input-box h3 { color: #ffd700; margin-bottom: 15px; font-size: 1.4rem; }
         .name-input {
             width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid #ff416c;
             background: #151722; color: #fff; font-size: 1rem; outline: none; text-align: center; margin-bottom: 20px;
         }
+        .name-input:focus { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
         .open-btn {
             background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white;
-            padding: 12px 30px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer;
+            padding: 14px 32px; font-size: 1.1rem; font-weight: bold; border: none;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 65, 108, 0.5);
         }
 
         /* Card Container */
-        .card-perspective { perspective: 1000px; width: 90vw; max-width: 420px; height: 65vh; z-index: 2; }
+        .card-perspective { perspective: 1000px; width: 90vw; max-width: 380px; height: 60vh; z-index: 2; }
         .card-inner {
             position: relative; width: 100%; height: 100%; text-align: center;
             border-radius: 16px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7);
-            background: var(--card-bg); border: 2px solid var(--accent-color);
+            background: linear-gradient(135deg, #1f1c2c, #928dab); border: 2px solid rgba(255, 215, 0, 0.4);
             display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 15px;
         }
-
-        .card-img-container { position: relative; width: 100%; height: 75%; border-radius: 12px; overflow: hidden; }
+        .card-img-container { position: relative; width: 100%; height: 78%; border-radius: 12px; overflow: hidden; }
         .card-img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* Scratch Canvas Layer */
-        #scratchCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; cursor: pointer; }
+        /* Scratch Canvas */
+        #scratchCanvas { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; cursor: pointer;
+            transition: opacity 0.6s ease;
+        }
 
-        /* User Name Footer inside Card */
         .card-user-footer {
             height: 20%; display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
         .card-user-footer h3 {
-            color: var(--accent-color); font-size: 1.3rem; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+            color: #ffd700; font-size: 1.25rem; text-shadow: 0 0 10px rgba(255, 215, 0, 0.6); margin-top: 2px;
         }
 
-        /* Action Buttons & Typing Container */
-        #typed-text { color: var(--accent-color); font-size: 1rem; font-weight: 600; text-align: center; margin-top: 10px; z-index: 2; height: 35px; }
-        .download-btn {
-            margin-top: 10px; z-index: 2; background: #25D366; color: white; padding: 10px 20px;
-            border: none; border-radius: 20px; font-weight: bold; cursor: pointer; display: none;
+        /* 3D Envelope Modal */
+        #envelopeModal {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center;
+            z-index: 40; padding: 20px; backdrop-filter: blur(5px);
         }
+        .letter-box {
+            background: #191b28; border: 2px solid #ffd700; border-radius: 15px;
+            padding: 25px; max-width: 420px; width: 100%; text-align: center;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3); position: relative;
+            transform: scale(0.8); animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popUp { 100% { transform: scale(1); } }
+        .letter-box h4 { color: #ff416c; font-size: 1.2rem; margin-bottom: 12px; }
+        #typed-letter { color: #fff; font-size: 1.05rem; line-height: 1.6; min-height: 80px; }
+        .close-letter-btn {
+            margin-top: 18px; background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white;
+            padding: 8px 25px; border: none; border-radius: 20px; cursor: pointer; font-weight: bold;
+        }
+
+        /* Buttons */
+        .btn-container { display: flex; gap: 10px; margin-top: 15px; z-index: 2; }
+        .action-btn {
+            background: linear-gradient(45deg, #11998e, #38ef7d); color: white;
+            padding: 10px 20px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(56, 239, 125, 0.3); display: none;
+        }
+        .note-btn { background: linear-gradient(45deg, #8a2be2, #4a00e0); box-shadow: 0 5px 15px rgba(138, 43, 226, 0.4); }
     </style>
 </head>
-<body class="theme-cosmic">
+<body>
 
     <canvas id="starfield"></canvas>
-    <audio id="celebrationAudio" src="celebration.mp3" preload="auto"></audio>
-
-    <!-- Theme Switcher Buttons -->
-    <div class="theme-switcher">
-        <button class="theme-btn" onclick="setTheme('theme-cosmic')">🚀 Cosmic</button>
-        <button class="theme-btn" onclick="setTheme('theme-luxury')">👑 Luxury</button>
-        <button class="theme-btn" onclick="setTheme('theme-cyberpunk')">🤖 Cyberpunk</button>
-    </div>
 
     <!-- Name Overlay -->
     <div id="overlay">
         <div class="input-box">
             <h3>✨ Welcome Winner! ✨</h3>
-            <p style="color: #aaa; margin-bottom: 15px; font-size: 0.85rem;">Enter your name to customize your card:</p>
+            <p style="color: #aaa; margin-bottom: 15px; font-size: 0.85rem;">Enter your name to unlock your surprise:</p>
             <input type="text" id="userName" class="name-input" placeholder="Type Your Name..." autocomplete="off">
-            <button class="open-btn" onclick="openSurprise()">Unlock Card 🎁</button>
+            <button class="open-btn" onclick="openSurprise()">Reveal Surprise 🎁</button>
         </div>
     </div>
 
@@ -121,20 +147,74 @@
                 <img src="congratulation.png" alt="Congratulations" class="card-img">
             </div>
             <div class="card-user-footer">
-                <p style="color: #bbb; font-size: 0.8rem;">Specially Created For</p>
-                <h3 id="displayCardName">🌟 Winner 🌟</h3>
+                <p style="color: #ccc; font-size: 0.75rem; letter-spacing: 1px;">SPECIALLY CREATED FOR</p>
+                <h3 id="displayCardName">🌟 Champion 🌟</h3>
             </div>
         </div>
     </div>
 
-    <div id="typed-text"></div>
-    <button class="download-btn" id="dlBtn" onclick="downloadCard()">📸 Save Card Image</button>
+    <!-- Action Buttons -->
+    <div class="btn-container">
+        <button class="action-btn note-btn" id="noteBtn" onclick="openLetter()">💌 Read Secret Note</button>
+        <button class="action-btn" id="dlBtn" onclick="downloadCard()">📸 Save Card</button>
+    </div>
+
+    <!-- Letter Modal -->
+    <div id="envelopeModal">
+        <div class="letter-box">
+            <h4>✉️ A Special Wish For You</h4>
+            <div id="typed-letter"></div>
+            <button class="close-letter-btn" onclick="closeLetter()">Close 💖</button>
+        </div>
+    </div>
 
     <script>
-        // --- 1. Theme Switcher ---
-        function setTheme(themeName) { document.body.className = themeName; }
+        // --- 1. Dynamic Time Theme System ---
+        function setTimeTheme() {
+            const hour = new Date().getHours();
+            if (hour >= 5 && hour < 12) {
+                document.body.className = 'theme-morning';
+            } else if (hour >= 12 && hour < 18) {
+                document.body.className = 'theme-afternoon';
+            } else {
+                document.body.className = 'theme-night';
+            }
+        }
+        setTimeTheme();
 
-        // --- 2. Moving Stars Background ---
+        // --- 2. Interactive Touch/Mouse Trail ---
+        const trailIcons = ['❤️', '✨', '💖', '🌟'];
+        function createParticle(x, y) {
+            const particle = document.createElement('span');
+            particle.className = 'particle';
+            particle.style.left = `${x - 10}px`;
+            particle.style.top = `${y - 10}px`;
+            particle.innerText = trailIcons[Math.floor(Math.random() * trailIcons.length)];
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 1200);
+        }
+        window.addEventListener('mousemove', (e) => createParticle(e.clientX, e.clientY));
+        window.addEventListener('touchmove', (e) => createParticle(e.touches[0].clientX, e.touches[0].clientY));
+
+        // --- 3. Double Tap Heart Explosion Effect ---
+        let lastTap = 0;
+        document.getElementById('captureCard').addEventListener('click', (e) => {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 300 && tapLength > 0) {
+                const heart = document.createElement('div');
+                heart.className = 'big-heart';
+                heart.innerText = '💖';
+                heart.style.left = `${e.clientX}px`;
+                heart.style.top = `${e.clientY}px`;
+                document.body.appendChild(heart);
+                confetti({ particleCount: 30, spread: 50, origin: { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight } });
+                setTimeout(() => heart.remove(), 800);
+            }
+            lastTap = currentTime;
+        });
+
+        // --- 4. Starfield Background Animation ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -143,8 +223,11 @@
 
         function createStars() {
             stars = [];
-            for (let i = 0; i < 90; i++) {
-                stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 2 + 1, speedX: (Math.random() - 0.5) * 0.7, speedY: (Math.random() - 0.5) * 0.7 });
+            for (let i = 0; i < 80; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    radius: Math.random() * 2 + 1, speedX: (Math.random() - 0.5) * 0.6, speedY: (Math.random() - 0.5) * 0.6
+                });
             }
         }
         createStars();
@@ -155,43 +238,57 @@
                 if (star.x < 0) star.x = canvas.width; if (star.x > canvas.width) star.x = 0;
                 if (star.y < 0) star.y = canvas.height; if (star.y > canvas.height) star.y = 0;
                 ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = "#ffffff"; ctx.fill();
+                ctx.fillStyle = "#ffffff"; ctx.globalAlpha = 0.6; ctx.fill();
             });
             requestAnimationFrame(animateStars);
         }
         animateStars();
 
-        // --- 3. Confetti Effect ---
-        function fireConfetti() {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        }
-
-        // --- 4. Scratch Card Setup ---
+        // --- 5. Scratch Card Auto-Reveal ---
         const scratchCanvas = document.getElementById('scratchCanvas');
         const sCtx = scratchCanvas.getContext('2d');
-        let isScratching = false;
+        let isScratching = false; let isRevealed = false;
 
         function initScratch() {
             scratchCanvas.width = scratchCanvas.offsetWidth;
             scratchCanvas.height = scratchCanvas.offsetHeight;
-            sCtx.fillStyle = '#888';
+            sCtx.fillStyle = '#2a2a3a';
             sCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
-            sCtx.fillStyle = '#fff';
-            sCtx.font = '16px Segoe UI';
+            sCtx.fillStyle = '#ffd700';
+            sCtx.font = 'bold 16px Segoe UI';
             sCtx.textAlign = 'center';
-            sCtx.fillText('👆 Scratch here to reveal!', scratchCanvas.width / 2, scratchCanvas.height / 2);
+            sCtx.fillText('✨ Scratch to reveal surprise! ✨', scratchCanvas.width / 2, scratchCanvas.height / 2);
+        }
+
+        function checkScratchPercentage() {
+            if (isRevealed) return;
+            const imageData = sCtx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+            const pixels = imageData.data;
+            let clearCount = 0;
+            for (let i = 3; i < pixels.length; i += 32) {
+                if (pixels[i] === 0) clearCount++;
+            }
+            if (clearCount > (pixels.length / 32) * 0.15) {
+                isRevealed = true;
+                scratchCanvas.style.opacity = '0';
+                setTimeout(() => {
+                    scratchCanvas.style.display = 'none';
+                    confetti({ particleCount: 180, spread: 80, origin: { y: 0.6 } });
+                    document.getElementById('noteBtn').style.display = 'block';
+                    document.getElementById('dlBtn').style.display = 'block';
+                }, 600);
+            }
         }
 
         function scratch(e) {
-            if (!isScratching) return;
+            if (!isScratching || isRevealed) return;
             const rect = scratchCanvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
             
             sCtx.globalCompositeOperation = 'destination-out';
-            sCtx.beginPath();
-            sCtx.arc(x, y, 25, 0, Math.PI * 2);
-            sCtx.fill();
+            sCtx.beginPath(); sCtx.arc(x, y, 30, 0, Math.PI * 2); sCtx.fill();
+            checkScratchPercentage();
         }
 
         scratchCanvas.addEventListener('mousedown', () => isScratching = true);
@@ -201,39 +298,60 @@
         scratchCanvas.addEventListener('touchend', () => isScratching = false);
         scratchCanvas.addEventListener('touchmove', scratch);
 
-        // --- 5. Typing Effect & Unlock ---
-        let wishText = ""; let index = 0;
-        function typeWriter() {
-            if (index < wishText.length) {
-                document.getElementById("typed-text").innerHTML += wishText.charAt(index);
-                index++; setTimeout(typeWriter, 45);
+        // --- 6. Custom Wish Letter & URL Query Support ---
+        let currentUserName = "Champion";
+        let letterText = "";
+        let letterIndex = 0;
+
+        function typeLetter() {
+            if (letterIndex < letterText.length) {
+                document.getElementById("typed-letter").innerHTML += letterText.charAt(letterIndex);
+                letterIndex++;
+                setTimeout(typeLetter, 45);
             }
+        }
+
+        function startSurpriseWithName(name) {
+            currentUserName = name ? name : "Champion";
+            document.getElementById('displayCardName').innerText = `✨ ${currentUserName} ✨`;
+            letterText = `Celebrating you today and always! May every moment ahead be filled with warmth, success, and endless joy. 🏆`;
+            document.getElementById('overlay').style.display = 'none';
+            initScratch();
         }
 
         function openSurprise() {
             const nameInput = document.getElementById('userName').value.trim();
-            const displayName = nameInput ? nameInput : "Champion";
-
-            document.getElementById('displayCardName').innerText = `✨ ${displayName} ✨`;
-            wishText = `Heartiest Congratulations ${displayName}! Keep shining always! 🏆`;
-
-            document.getElementById('overlay').style.display = 'none';
-            initScratch();
-            typeWriter();
-            fireConfetti();
-            document.getElementById('dlBtn').style.display = 'block';
-
-            const audio = document.getElementById('celebrationAudio');
-            if(audio) { audio.play().catch(e=>console.log(e)); }
+            startSurpriseWithName(nameInput);
         }
 
-        // --- 6. Save Card as Image (Download) ---
+        // URL Check (e.g., mysite.com/?name=Riya)
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const nameParam = urlParams.get('name');
+            if (nameParam) {
+                startSurpriseWithName(nameParam);
+            }
+        });
+
+        function openLetter() {
+            document.getElementById('envelopeModal').style.display = 'flex';
+            document.getElementById("typed-letter").innerHTML = "";
+            letterIndex = 0;
+            typeLetter();
+            confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
+        }
+
+        function closeLetter() {
+            document.getElementById('envelopeModal').style.display = 'none';
+        }
+
+        // --- 7. Save Card Image ---
         function downloadCard() {
-            scratchCanvas.style.display = 'none'; // Clear scratch layer for clear image
-            html2canvas(document.getElementById('captureCard')).then(canvas => {
+            scratchCanvas.style.display = 'none';
+            html2canvas(document.getElementById('captureCard')).then(cardCanvas => {
                 let link = document.createElement('a');
-                link.download = 'Congratulations_Card.png';
-                link.href = canvas.toDataURL();
+                link.download = `${currentUserName}_Card.png`;
+                link.href = cardCanvas.toDataURL();
                 link.click();
             });
         }
