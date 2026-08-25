@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Congratulations!</title>
+    <title>Congratulations Winners!</title>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -14,10 +16,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000000;
+            background-color: #0d0e15;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .fullscreen-container {
             width: 100vw;
@@ -25,20 +28,84 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
         }
         .card-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             display: block;
+            animation: zoomIn 1s ease-out;
+        }
+        /* Reveal Button Overlay */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 14, 21, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+        .open-btn {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            padding: 15px 32px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(255, 65, 108, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
+    <!-- Click to Open Layer (Mobile Audio policy compliant) -->
+    <div id="overlay" onclick="openSurprise()">
+        <button class="open-btn">Tap to Open Surprise 🎁</button>
+    </div>
+
     <div class="fullscreen-container">
         <img src="congratulation.png" alt="Congratulations Card" class="card-img">
     </div>
 
+    <script>
+        function openSurprise() {
+            // Hide Overlay
+            const overlay = document.getElementById('overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 500);
+
+            // Trigger Confetti Explosion
+            var count = 200;
+            var defaults = { origin: { y: 0.7 } };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
+            }
+
+            fire(0.25, { spread: 26, startVelocity: 55 });
+            fire(0.2, { spread: 60 });
+            fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+            fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+            fire(0.1, { spread: 120, startVelocity: 45 });
+        }
+    </script>
 </body>
 </html>
