@@ -7,99 +7,96 @@
     <!-- Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            width: 100%; height: 100%; overflow: hidden;
             background-color: #0d0e15;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .fullscreen-container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 100vw; height: 85vh;
+            display: flex; justify-content: center; align-items: center;
             position: relative;
         }
         .card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
+            width: 100%; height: 100%; object-fit: contain; display: block;
             animation: zoomIn 1s ease-out;
         }
-        /* Totally Opaque & Blurred Overlay */
+        #typed-text {
+            color: #ffd700; font-size: 1.2rem; font-weight: 500;
+            text-align: center; height: 15vh; line-height: 1.5;
+            padding: 0 10px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
         #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0d0e15; /* সলিড ব্যাকগ্রাউন্ড, ফলে পেছনে কিছু দেখা যাবে না */
-            backdrop-filter: blur(20px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10;
-            cursor: pointer;
-            transition: opacity 0.5s ease;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0d0e15; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10;
+            cursor: pointer; transition: opacity 0.5s ease;
         }
         .open-btn {
             background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            color: white;
-            padding: 16px 36px;
-            font-size: 1.25rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 50px;
+            color: white; padding: 16px 36px; font-size: 1.25rem; font-weight: bold;
+            border: none; border-radius: 50px;
             box-shadow: 0 10px 25px rgba(255, 65, 108, 0.5);
             animation: pulse 1.5s infinite;
         }
-        @keyframes zoomIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-        }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
     </style>
 </head>
 <body>
 
-    <!-- Click to Open Layer -->
+    <!-- Audio Player (Background-এ গান বাজাবে) -->
+    <audio id="celebrationAudio" src="celebration.mp3" preload="auto"></audio>
+
+    <!-- Overlay Layer -->
     <div id="overlay" onclick="openSurprise()">
         <button class="open-btn">Tap to Open Surprise 🎁</button>
     </div>
 
+    <!-- Main Card Image -->
     <div class="fullscreen-container">
         <img src="congratulation.png" alt="Congratulations Card" class="card-img">
     </div>
+    
+    <!-- Typing Effect Message -->
+    <div id="typed-text"></div>
 
     <script>
+        const wishText = "✨ Heartiest Congratulations on this brilliant success! Keep shining! 🏆";
+        let index = 0;
+
+        function typeWriter() {
+            if (index < wishText.length) {
+                document.getElementById("typed-text").innerHTML += wishText.charAt(index);
+                index++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+
         function openSurprise() {
-            const overlay = document.getElementById('overlay');
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.style.display = 'none', 500);
-
-            // Confetti Animation
-            var count = 200;
-            var defaults = { origin: { y: 0.7 } };
-
-            function fire(particleRatio, opts) {
-                confetti(Object.assign({}, defaults, opts, {
-                    particleCount: Math.floor(count * particleRatio)
-                }));
+            // ১. গান চালুর জন্য জাভাস্ক্রিপ্ট কমান্ড
+            const audio = document.getElementById('celebrationAudio');
+            if (audio) {
+                audio.play().catch(e => console.log("Audio play failed:", e));
             }
 
+            // ২. স্ক্রিন ওপেন করা ও মেসেজ টাইপ করা
+            const overlay = document.getElementById('overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                typeWriter();
+            }, 500);
+
+            // ৩. কনফেটি ওড়ানো
+            var count = 200;
+            var defaults = { origin: { y: 0.7 } };
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
+            }
             fire(0.25, { spread: 26, startVelocity: 55 });
             fire(0.2, { spread: 60 });
             fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
